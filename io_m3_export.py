@@ -2044,7 +2044,6 @@ class Exporter():
                         else:
                             layer_section = self.m3.section_for_reference(m3_mat, layer_name_full, version=self.ob.m3_materiallayers_version)
                             layer_section.content_add()
-                            m3_layer_bitmap_section = self.m3.section_for_reference(m3_layer, 'color_bitmap')
 
                     else:
 
