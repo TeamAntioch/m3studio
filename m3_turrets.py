@@ -118,6 +118,12 @@ class PartProperties(shared.M3PropertyGroup):
 
     bone: bpy.props.PointerProperty(type=shared.M3BonePointerPropExclusive)
     forward: bpy.props.FloatVectorProperty(options=set(), size=3, subtype='EULER', unit='ROTATION', default=(0, 0, 0))
+    # PATU quat_up0 / quat_up1, kept from import so they round-trip. Every stock part checked has quat_up0 equal to the
+    # bone's rest rotation, so the zero default (not a rotation) means "derive it from the bone on export"; that is what
+    # parts made in Blender, and parts from .blend files saved before these properties existed, get. quat_up1 can't be
+    # derived (stock spine and head parts carry +/-90 degrees about X, eye parts identity), so it defaults to identity.
+    quat_up0: bpy.props.FloatVectorProperty(options=set(), size=4, subtype='QUATERNION', default=(0, 0, 0, 0))
+    quat_up1: bpy.props.FloatVectorProperty(options=set(), size=4, subtype='QUATERNION', default=(1, 0, 0, 0))
     main_part: bpy.props.BoolProperty(options=set(), get=turret_part_main_get, set=turret_part_main_set)
     group_id: bpy.props.IntProperty(options=set(), get=turret_part_group_id_get, set=turret_part_group_id_set, subtype='UNSIGNED', min=1, max=255)
     yaw_weight: bpy.props.FloatProperty(options=set(), min=0, max=1, default=1, subtype='FACTOR')

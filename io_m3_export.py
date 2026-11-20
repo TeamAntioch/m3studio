@@ -2568,10 +2568,10 @@ class Exporter():
         turret_part_section = self.m3.section_for_reference(model, 'turret_parts', version=part_version)
         turret_section = self.m3.section_for_reference(model, 'turrets', version=0)
 
-        base_quat = mathutils.Quaternion((0.0, 0.0, -1.0), 1.5707961320877075)
+        # sort parts by their bone index, then group id. a bone may have a part in more than one group, so the bone index alone is not a key
+        def part_sort_key(part):
+            return (self.bone_name_indices[shared.m3_pointer_get(self.ob.pose.bones, part.bone).name], part.group_id)
 
-        # sort parts by their bone index
-        part_to_bone_index = {self.bone_name_indices[shared.m3_pointer_get(self.ob.pose.bones, part.bone).name]: part for part in self.export_turret_parts}
         turret_parts_index = []
         group_id_main_bone = {}
 
@@ -2579,13 +2579,13 @@ class Exporter():
             if part.main_part:
                 group_id_main_bone[part.group_id] = shared.m3_pointer_get(self.ob.pose.bones, part.bone)
 
-        for bone_index in sorted(list(part_to_bone_index.keys())):
-            part = part_to_bone_index[bone_index]
+        for part in sorted(self.export_turret_parts, key=part_sort_key):
             turret_parts_index.append(part)
 
             bone = shared.m3_pointer_get(self.ob.pose.bones, part.bone)
             m3_part = turret_part_section.content_add()
             m3_part.bone = self.bone_name_indices[bone.name]
+            m3_part.group_id = part.group_id
             processor = M3OutputProcessor(self, part, m3_part)
             io_shared.io_turret_part(processor)
 
@@ -2599,12 +2599,13 @@ class Exporter():
 
             db = self.ob.data.bones.get(bone.name)
 
-            if db.parent:
-                upquat = to_m3_vec4_quat(db.matrix_local.to_quaternion().rotation_difference(db.parent.matrix_local.transposed().to_quaternion()))
-            else:
-                m3_part.quat_up0 = to_m3_vec4_quat(db.matrix_local.to_quaternion().rotation_difference(base_quat))
-
-            # m3_part.quat_up1 = to_m3_vec4_quat()
+            if hasattr(m3_part, 'quat_up0'):  # PATU version 4 and later
+                quat_up0 = mathutils.Quaternion(part.quat_up0)
+                if quat_up0.magnitude < 1e-6:
+                    # not imported, so use the bone's rest rotation in m3 space, which is what stock parts carry
+                    quat_up0 = (db.matrix_local @ io_shared.rot_fix_matrix_transpose).to_quaternion()
+                m3_part.quat_up0 = to_m3_vec4_quat(quat_up0)
+                m3_part.quat_up1 = to_m3_vec4_quat(mathutils.Quaternion(part.quat_up1))
 
             if group_id_main_bone.get(part.group_id) and not part.main_part:
                 mdb = self.ob.data.bones.get(group_id_main_bone[part.group_id].name)
