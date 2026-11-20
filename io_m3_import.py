@@ -1692,6 +1692,10 @@ class Importer:
                 forward_matrix.col[2] = to_bl_vec4(m3_part.matrix_forward.z).wyzx
                 part.forward = forward_matrix.to_euler()
 
+                if hasattr(m3_part, 'quat_up0'):  # PATU version 4 and later
+                    part.quat_up0 = to_bl_quat(m3_part.quat_up0)
+                    part.quat_up1 = to_bl_quat(m3_part.quat_up1)
+
                 # test_matrix = to_bl_matrix(m3_part.matrix_forward)
                 # db = self.ob.data.bones.get(pose_bone.name)
                 # print(db.matrix_local.to_quaternion())
