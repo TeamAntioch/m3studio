@@ -2607,11 +2607,13 @@ class Exporter():
                 m3_part.quat_up0 = to_m3_vec4_quat(quat_up0)
                 m3_part.quat_up1 = to_m3_vec4_quat(mathutils.Quaternion(part.quat_up1))
 
-            if group_id_main_bone.get(part.group_id) and not part.main_part:
+            # write the main flag as set in blender. a group need not have a main part (stock HotS Greymane has none),
+            # and its parts must not all become main; they keep a zero offset, as stock parts in such groups do
+            if part.main_part:
+                m3_part.bit_set('flags', 'main_part', True)
+            elif group_id_main_bone.get(part.group_id):
                 mdb = self.ob.data.bones.get(group_id_main_bone[part.group_id].name)
                 m3_part.main_bone_offset = to_m3_vec3(db.matrix_local.translation - mdb.matrix_local.translation)
-            else:
-                m3_part.bit_set('flags', 'main_part', True)
 
         for turret in turrets:
             m3_turret = turret_section.content_add()
