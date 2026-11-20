@@ -2544,7 +2544,7 @@ class Exporter():
                             # if sim_vert not in used_sim_verts:
                             distance_sim_verts.append([(vert.co - sim_vert.co).length, sim_vert])
                             # used_sim_verts.append(sim_vert)
-                        distance_sim_verts.sort()
+                        distance_sim_verts.sort(key=lambda pair: pair[0])
                         sim_verts |= distance_sim_verts[0][1].index << (weighted * 16)
                         sim_weights |= round(weight * 255) << (weighted * 8)
                         weighted += 1
