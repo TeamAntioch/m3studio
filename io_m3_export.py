@@ -1759,7 +1759,7 @@ class Exporter():
 
                     if deformations_count:
 
-                        deformations.sort(key=lambda x: x[1])
+                        deformations.sort(key=lambda x: x[1], reverse=True)
                         deformations = deformations[0:min(deformations_count, len(deformations))]
 
                         if not len(deformations):
